@@ -316,8 +316,12 @@ static int php_xziop_close(php_stream *stream, int close_handle)
 		php_stream_free(self->stream, PHP_STREAM_FREE_CLOSE | (close_handle == 0 ? PHP_STREAM_FREE_PRESERVE_HANDLE : 0));
 	}
 
-	efree(self->in_buf);
-	efree(self->out_buf);
+	if (self->in_buf) {
+		efree(self->in_buf);
+	}
+	if (self->out_buf) {
+		efree(self->out_buf);
+	}
 	efree(self);
 
 	return ret;
@@ -423,20 +427,17 @@ php_stream *php_stream_xzopen(php_stream_wrapper *wrapper, const char *path, con
 				if ((strcmp(mode, "w") == 0) || (strcmp(mode, "wb") == 0)) {
 					if (!php_xz_init_encoder(self)) {
 						php_error_docref(NULL, E_WARNING, "Could not initialize xz encoder.");
-						efree(self);
 						php_stream_close(stream);
 						return NULL;
 					}
 				} else if ((strcmp(mode, "r") == 0) || (strcmp(mode, "rb") == 0)) {
 					if (!php_xz_init_decoder(self)) {
 						php_error_docref(NULL, E_WARNING, "Could not initialize xz decoder");
-						efree(self);
 						php_stream_close(stream);
 						return NULL;
 					}
 				} else {
 					php_error_docref(NULL, E_WARNING, "Can only open in read (r) or write (w) mode.");
-					efree(self);
 					php_stream_close(stream);
 					return NULL;
 				}
